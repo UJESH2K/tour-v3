@@ -481,6 +481,16 @@
                     controls.update();
                 }
 
+                if (panoramaName === '6666.jpeg') {
+                    const startDir = new THREE.Vector3(-373.7292852732634, -141.3508544529347, 1.0520145945771726).normalize();
+                    // Open a bit to the left and slightly upward
+                    startDir.applyAxisAngle(new THREE.Vector3(0, 1, 0), THREE.MathUtils.degToRad(10));
+                    startDir.applyAxisAngle(new THREE.Vector3(1, 0, 0), THREE.MathUtils.degToRad(10));
+                    camera.position.copy(startDir.multiplyScalar(-0.1));
+                    controls.target.set(0, 0, 0);
+                    controls.update();
+                }
+
                 loadHotspotsFor(currentPanorama);
                 overlay.style.opacity = '0';
                 overlay.style.pointerEvents = 'none';
@@ -491,36 +501,43 @@
         }
 
         function addHotspot(imageUrl, position, onClickCallback) {
+            const material = new THREE.SpriteMaterial();
+            const sprite = new THREE.Sprite(material);
+            sprite.position.copy(position);
+            // Increased scale for slightly bigger target 
+            sprite.scale.set(110, 110, 1);
+            sprite.userData = {
+                onClick: onClickCallback,
+                targetScale: 110,
+                type: 'hotspot',
+                originalY: position.y
+            };
+            spriteHotspots.push(sprite);
+            scene.add(sprite);
+
             const textureLoader = new THREE.TextureLoader();
             textureLoader.load(imageUrl, (texture) => {
-                const material = new THREE.SpriteMaterial({ map: texture });
-                const sprite = new THREE.Sprite(material);
-                sprite.position.copy(position);
-                sprite.scale.set(80, 80, 1);
-                sprite.userData = {
-                    onClick: onClickCallback,
-                    targetScale: 80,
-                    type: 'hotspot',
-                    originalY: position.y
-                };
-                spriteHotspots.push(sprite);
-                scene.add(sprite);
+                sprite.material.map = texture;
+                sprite.material.needsUpdate = true;
             });
         }
 
         function addStaticImage(imageUrl, position, scaleX, scaleY, onClickCallback) {
+            const material = new THREE.SpriteMaterial();
+            const sprite = new THREE.Sprite(material);
+            sprite.position.copy(position);
+            sprite.scale.set(scaleX, scaleY, 1);
+            sprite.userData = {
+                onClick: onClickCallback,
+                type: 'static'
+            };
+            spriteHotspots.push(sprite);
+            scene.add(sprite);
+
             const textureLoader = new THREE.TextureLoader();
             textureLoader.load(imageUrl, (texture) => {
-                const material = new THREE.SpriteMaterial({ map: texture });
-                const sprite = new THREE.Sprite(material);
-                sprite.position.copy(position);
-                sprite.scale.set(scaleX, scaleY, 1);
-                sprite.userData = {
-                    onClick: onClickCallback,
-                    type: 'static'
-                };
-                spriteHotspots.push(sprite);
-                scene.add(sprite);
+                sprite.material.map = texture;
+                sprite.material.needsUpdate = true;
             });
         }
 
