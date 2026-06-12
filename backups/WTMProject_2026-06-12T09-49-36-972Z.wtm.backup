@@ -66,6 +66,18 @@
             }
           ],
           "icon": "chevronforward.png"
+        },
+        {
+          "hotspotid": "PDT5aoUQwi",
+          "title": "way back",
+          "position": "41.61999947092701,-14.040876008992948,-397.189179322591",
+          "actions": [
+            {
+              "type": 0,
+              "target": "1010.jpeg"
+            }
+          ],
+          "icon": "chevronforward.png"
         }
       ]
     },
@@ -137,7 +149,7 @@
           "actions": [
             {
               "type": 0,
-              "target": "9999.jpeg"
+              "target": "7777.jpeg"
             }
           ],
           "icon": "chevrontilted.png"
@@ -163,7 +175,12 @@
           "hotspotid": "tezlIJGLVs",
           "title": "start 2 back",
           "position": "307.74948001260657,-237.94908840314645,90.95930543703543",
-          "actions": [],
+          "actions": [
+            {
+              "type": 0,
+              "target": "5555.jpeg"
+            }
+          ],
           "icon": "chevrontilted.png"
         }
       ]

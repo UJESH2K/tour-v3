@@ -71,7 +71,12 @@
           "hotspotid": "PDT5aoUQwi",
           "title": "way back",
           "position": "41.61999947092701,-14.040876008992948,-397.189179322591",
-          "actions": [],
+          "actions": [
+            {
+              "type": 0,
+              "target": "1010.jpeg"
+            }
+          ],
           "icon": "chevronforward.png"
         }
       ]
@@ -92,16 +97,11 @@
           "icon": "chevronup.png"
         },
         {
-          "hotspotid": "TxGpAnKuWB",
-          "title": "info",
-          "position": "-395.9321496941983,-40.75690339898365,-29.531094674849257",
-          "actions": [
-            {
-              "type": 1,
-              "target": "images/WhatsAppImage20260612at14.36.34.jpeg"
-            }
-          ],
-          "icon": "â__Pngtreeâ__infovectoricon_3791375.png"
+          "hotspotid": "U5Ksibgaze",
+          "title": "img info",
+          "position": "-395.74779029262254,-41.31965175831276,-32.04292353294261",
+          "actions": [],
+          "icon": "default.png"
         }
       ]
     },
