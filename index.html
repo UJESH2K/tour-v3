@@ -470,6 +470,17 @@
                 panoramaMesh.material.map = tex;
                 panoramaMesh.material.needsUpdate = true;
                 currentPanorama = panoramaName;
+                
+                // Adjust initial face direction for specific panoramas
+                if (panoramaName === '5555.jpeg') {
+                    const startDir = new THREE.Vector3(-353.2569536760154, -185.7585950120302, -12.556163197944937).normalize();
+                    // Rotate 70 degrees to the right
+                    startDir.applyAxisAngle(new THREE.Vector3(0, 1, 0), THREE.MathUtils.degToRad(-70));
+                    camera.position.copy(startDir.multiplyScalar(-0.1));
+                    controls.target.set(0, 0, 0);
+                    controls.update();
+                }
+
                 loadHotspotsFor(currentPanorama);
                 overlay.style.opacity = '0';
                 overlay.style.pointerEvents = 'none';
