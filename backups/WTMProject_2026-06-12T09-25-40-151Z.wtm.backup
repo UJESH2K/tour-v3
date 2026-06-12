@@ -1,0 +1,216 @@
+{
+  "title": "2nd try",
+  "panoramas": [
+    {
+      "panofile": "1010.jpeg",
+      "hotspots": [
+        {
+          "hotspotid": "IcCKoJO51U",
+          "title": "entrance",
+          "position": "-394.8529551343744,-55.577581089871046,16.534694904487296",
+          "actions": [
+            {
+              "type": 0,
+              "target": "8888.jpeg"
+            }
+          ],
+          "icon": "chevrontilted.png"
+        }
+      ]
+    },
+    {
+      "panofile": "8888.jpeg",
+      "hotspots": [
+        {
+          "hotspotid": "0A8ItgOdUj",
+          "title": "1st walkway",
+          "position": "-394.9243449226463,-60.842689387380275,-5.327103682829396",
+          "actions": [
+            {
+              "type": 0,
+              "target": "3333.jpeg"
+            }
+          ],
+          "icon": "chevrontilted.png"
+        }
+      ]
+    },
+    {
+      "panofile": "3333.jpeg",
+      "hotspots": [
+        {
+          "hotspotid": "qkJyKa0Doa",
+          "title": "2nd walkway",
+          "position": "-395.0942804175204,-53.52303591471901,-16.384208930147345",
+          "actions": [
+            {
+              "type": 0,
+              "target": "11111111.jpeg"
+            }
+          ],
+          "icon": "chevronforward.png"
+        }
+      ]
+    },
+    {
+      "panofile": "11111111.jpeg",
+      "hotspots": [
+        {
+          "hotspotid": "ji5ZnePElw",
+          "title": "to admin",
+          "position": "-399.40802486991106,-2.682630372219153,-7.313108501343212",
+          "actions": [
+            {
+              "type": 0,
+              "target": "7777.jpeg"
+            }
+          ],
+          "icon": "chevronforward.png"
+        },
+        {
+          "hotspotid": "PDT5aoUQwi",
+          "title": "way back",
+          "position": "41.61999947092701,-14.040876008992948,-397.189179322591",
+          "actions": [],
+          "icon": "chevronforward.png"
+        }
+      ]
+    },
+    {
+      "panofile": "7777.jpeg",
+      "hotspots": [
+        {
+          "hotspotid": "GULngKt1tA",
+          "title": "to stairs",
+          "position": "-371.6775120951146,-83.49155199765971,-120.87632310797866",
+          "actions": [
+            {
+              "type": 0,
+              "target": "9999.jpeg"
+            }
+          ],
+          "icon": "chevronup.png"
+        },
+        {
+          "hotspotid": "TxGpAnKuWB",
+          "title": "info",
+          "position": "-395.9321496941983,-40.75690339898365,-29.531094674849257",
+          "actions": [
+            {
+              "type": 1,
+              "target": "images/WhatsAppImage20260612at14.36.34.jpeg"
+            }
+          ],
+          "icon": "â__Pngtreeâ__infovectoricon_3791375.png"
+        }
+      ]
+    },
+    {
+      "panofile": "9999.jpeg",
+      "hotspots": [
+        {
+          "hotspotid": "eKF6MYFgoc",
+          "title": "stair 1",
+          "position": "-397.9532809914798,1.7864170917204292,-36.18197948138619",
+          "actions": [
+            {
+              "type": 0,
+              "target": "5555.jpeg"
+            }
+          ],
+          "icon": "chevronleft.png"
+        }
+      ]
+    },
+    {
+      "panofile": "5555.jpeg",
+      "hotspots": [
+        {
+          "hotspotid": "EdJUaujFC9",
+          "title": "stair 2 ",
+          "position": "-219.01296887436808,-181.9495553350952,-280.2192961943286",
+          "actions": [
+            {
+              "type": 0,
+              "target": "6666.jpeg"
+            }
+          ],
+          "icon": "chevronleft.png"
+        },
+        {
+          "hotspotid": "SrUA6YMtRh",
+          "title": "stairs 1 back",
+          "position": "-353.2569536760154,-185.7585950120302,-12.556163197944937",
+          "actions": [
+            {
+              "type": 0,
+              "target": "7777.jpeg"
+            }
+          ],
+          "icon": "chevrontilted.png"
+        }
+      ]
+    },
+    {
+      "panofile": "6666.jpeg",
+      "hotspots": [
+        {
+          "hotspotid": "gtw94ucHHN",
+          "title": "dest",
+          "position": "-373.7292852732634,-141.3508544529347,1.0520145945771726",
+          "actions": [
+            {
+              "type": 0,
+              "target": "4444.jpeg"
+            }
+          ],
+          "icon": "chevronforward.png"
+        },
+        {
+          "hotspotid": "tezlIJGLVs",
+          "title": "start 2 back",
+          "position": "307.74948001260657,-237.94908840314645,90.95930543703543",
+          "actions": [
+            {
+              "type": 0,
+              "target": "5555.jpeg"
+            }
+          ],
+          "icon": "chevrontilted.png"
+        }
+      ]
+    },
+    {
+      "panofile": "4444.jpeg",
+      "hotspots": [
+        {
+          "hotspotid": "qBfhimfYGc",
+          "title": "destination reached",
+          "position": "-392.1974831900987,-72.569764219895,13.388010757278055",
+          "actions": [],
+          "icon": "â__Pngtreeâ__gpsmappointertoindicate_7948539.png"
+        },
+        {
+          "hotspotid": "IDWEvKwKjY",
+          "title": "admin return ",
+          "position": "310.45574586421895,-227.03155999541852,-107.63929662623653",
+          "actions": [
+            {
+              "type": 0,
+              "target": "6666.jpeg"
+            }
+          ],
+          "icon": "chevronleft.png"
+        }
+      ]
+    }
+  ],
+  "threedeescenes": [],
+  "settings": {
+    "loadingtext": "Loading...",
+    "firstpanorama": "1010.jpeg",
+    "description": "New 3Sixty Virtual Tour Project",
+    "controls": 0,
+    "panolistmenu": 0
+  }
+}
