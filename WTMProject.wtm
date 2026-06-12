@@ -102,6 +102,18 @@
           "position": "-395.74779029262254,-41.31965175831276,-32.04292353294261",
           "actions": [],
           "icon": "WhatsAppImage20260612at14.36.34.jpeg"
+        },
+        {
+          "hotspotid": "fefHQMU9kN",
+          "title": "way back",
+          "position": "335.04293695573153,-194.97039362999178,-95.08397692448744",
+          "actions": [
+            {
+              "type": 0,
+              "target": "11111111.jpeg"
+            }
+          ],
+          "icon": "chevrontilted.png"
         }
       ]
     },

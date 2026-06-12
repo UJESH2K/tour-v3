@@ -5,1079 +5,1079 @@
     <!--projectdescription--><meta name="description" content="New 3Sixty Virtual Tour Project"><!--projectdescription-end-->
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta charset="utf-8">
-    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width, shrink-to-fit=no">
-    
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width, shrink-to-fit=no, viewport-fit=cover">
+
     <link rel="stylesheet" type="text/css" href="css/font-awesome.css">
     <link rel="stylesheet" type="text/css" href="style.css">
-    
-    <!-- Insert this line above script imports -->
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+
     <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
-    
     <script src="js/jquery.js"></script>
     <script src="js/imagedata.js"></script>
-    
-    <!-- Insert this line after script imports -->
     <script>if (window.module) module = window.module;</script>
-    
+
     <style>
-        /* SCROLLBAR STYLING */
-        ::-webkit-scrollbar {
-            width: 0.25em;
-            height: 0.25em;
-        }
-        ::-webkit-scrollbar-track {
-            background: #2c3643; 
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #0d9e59; 
-            transition: background .5s;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #00e075; 
+        /* ── RESET & BASE ── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --accent:   #0d9e59;
+            --accent2:  #00e075;
+            --dark:     #050709;
+            --panel:    rgba(4, 6, 9, 0.92);
+            --glass:    rgba(255,255,255,0.04);
+            --border:   rgba(255,255,255,0.08);
+            --text:     #dde4eb;
+            --subtext:  #6b8496;
+            --radius:   14px;
+            --transition: 0.45s cubic-bezier(0.22, 1, 0.36, 1);
         }
 
-        body {
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track  { background: #1a2333; }
+        ::-webkit-scrollbar-thumb  { background: var(--accent); border-radius: 2px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent2); }
+
+        html, body {
             margin: 0;
             overflow: hidden;
             font-family: 'Quicksand', sans-serif;
+            background: var(--dark);
+            color: var(--text);
+            height: 100%;
+            /* Prevent mobile browser bounce/zoom gestures */
+            touch-action: none;
+            -ms-touch-action: none;
         }
-        
+
+        /* ── CANVAS CONTAINER ── */
         #container {
             width: 100vw;
             height: 100vh;
+            height: 100dvh; /* better mobile viewport handling */
             display: block;
+            cursor: grab;
+            touch-action: none;
         }
-        
+        #container:active { cursor: grabbing; }
+
+        /* ── TRANSITION OVERLAY ── */
         #overlay {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100vw;
-            height: 100vh;
-            background-color: rgba(0, 0, 0, 0.8);
-            color: white;
-            font-size: 2rem;
+            position: fixed;
+            inset: 0;
+            background: var(--dark);
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 10;
+            z-index: 100;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.5s ease;
+            transition: opacity 0.35s ease;
         }
-        
+        #overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .loader-ring {
+            width: 52px;
+            height: 52px;
+            border: 3px solid rgba(13,158,89,0.2);
+            border-top-color: var(--accent2);
+            border-radius: 50%;
+            animation: spin 0.9s linear infinite;
+            margin-bottom: 18px;
+        }
+        .loader-text {
+            font-size: 13px;
+            letter-spacing: 0.12em;
+            color: var(--subtext);
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── INITIAL LOADING SCREEN ── */
+        #loading {
+            position: fixed;
+            inset: 0;
+            background: var(--dark);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+        }
+        .loading-logo {
+            font-size: 26px;
+            font-weight: 700;
+            letter-spacing: 0.18em;
+            color: var(--text);
+            margin-bottom: 10px;
+        }
+        .loading-logo span { color: var(--accent2); }
+        .loading-sub {
+            font-size: 11px;
+            color: var(--subtext);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: 36px;
+        }
+        .progress-bar-track {
+            width: 220px;
+            height: 3px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+        #loadingperc {
+            font-size: 11px;
+            color: var(--subtext);
+            margin-top: 12px;
+            letter-spacing: 0.08em;
+        }
+
+        /* ── VIGNETTE EFFECT ── */
+        #vignette {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(ellipse at center, transparent 45%, rgba(0,0,0,0.72) 100%);
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        /* ── HUD: TOUR NAME ── */
+        #hud-title {
+            position: fixed;
+            top: calc(20px + env(safe-area-inset-top, 0px));
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--panel);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            padding: 8px 24px;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--text);
+            z-index: 10;
+            opacity: 0;
+            animation: fadeSlideDown 0.8s var(--transition) 1.2s forwards;
+            max-width: 92vw;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        #hud-title .dot {
+            display: inline-block;
+            width: 7px; height: 7px;
+            background: var(--accent2);
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+        @keyframes pulse-dot {
+            0%,100% { opacity:1; transform: scale(1); }
+            50%     { opacity:0.5; transform: scale(0.7); }
+        }
+
+        /* ── HUD: CONTROLS HINT ── */
+        #hud-hint {
+            position: fixed;
+            bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--panel);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            padding: 7px 20px;
+            font-size: 11px;
+            color: var(--subtext);
+            letter-spacing: 0.08em;
+            z-index: 10;
+            opacity: 0;
+            animation: fadeSlideUp 0.8s var(--transition) 1.5s forwards;
+            white-space: nowrap;
+        }
+        #hud-hint i { color: var(--accent2); margin: 0 4px; }
+
+        /* ── HUD: ZOOM INDICATOR ── */
+        #hud-zoom {
+            position: fixed;
+            right: calc(24px + env(safe-area-inset-right, 0px));
+            bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+            background: var(--panel);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 10px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            z-index: 10;
+            opacity: 0;
+            animation: fadeIn 0.8s ease 1.8s forwards;
+        }
+        .zoom-btn {
+            width: 30px; height: 30px;
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 16px;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: background 0.2s, color 0.2s, transform 0.15s;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .zoom-btn:hover { background: var(--accent); color: #fff; transform: scale(1.08); }
+        .zoom-btn:active { transform: scale(0.95); background: var(--accent); color: #fff; }
+
+        /* ── MEDIA LIGHTBOX ── */
         #tmp {
             position: fixed;
-            top: 0;
-            left: 0; 
-            right: 0;
-            bottom: 0;
-            padding: 3em;
-            background-color: rgba(0,0,0,.5);
-            backdrop-filter: blur(5px);
+            inset: 0;
+            padding: 40px;
+            background: rgba(0,0,0,0.88);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             display: none;
-            z-index: 21;
+            z-index: 300;
+            animation: fadeIn 0.3s ease;
         }
-        
-        /* --- Elemen UI yang dihilangkan --- */
-        #controls-info,
-        #compass {
-            display: none;
+        #tmpcontent {
+            width: 100%;
+            height: 100%;
+            overflow: hidden auto;
+            position: relative;
+            border-radius: var(--radius);
         }
-        
-        #mode-indicator {
+        .mediaclosebutton {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            width: 38px; height: 38px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            color: var(--text);
+            z-index: 10;
+            transition: background 0.2s, transform 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .mediaclosebutton:hover { background: #c0392b; transform: scale(1.1); }
+
+        /* ── KEYFRAME LIBRARY ── */
+        @keyframes fadeIn       { from { opacity:0 } to { opacity:1 } }
+        @keyframes fadeSlideDown {
+            from { opacity:0; transform: translateX(-50%) translateY(-10px); }
+            to   { opacity:1; transform: translateX(-50%) translateY(0); }
+        }
+        @keyframes fadeSlideUp {
+            from { opacity:0; transform: translateX(-50%) translateY(10px); }
+            to   { opacity:1; transform: translateX(-50%) translateY(0); }
+        }
+
+        /* ── CROSSHAIR (subtle center) ── */
+        #crosshair {
             position: fixed;
-            top: 20px;
-            right: 20px;
-            color: white;
-            background: rgba(0,0,0,0.5);
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 14px;
+            top: 50%; left: 50%;
+            transform: translate(-50%,-50%);
+            width: 18px; height: 18px;
+            pointer-events: none;
             z-index: 5;
-            border: 1px solid #eba576;
-			display: none;
+            opacity: 0.3;
         }
-        
+        #crosshair::before, #crosshair::after {
+            content: '';
+            position: absolute;
+            background: white;
+            border-radius: 1px;
+        }
+        #crosshair::before { width: 1px; height: 100%; left: 50%; top: 0; }
+        #crosshair::after  { width: 100%; height: 1px; top: 50%; left: 0; }
+
+        /* ── HIDDEN LEGACY ── */
+        #controls-info, #compass, #mode-indicator { display: none !important; }
+
+        /* ── RESPONSIVE / MOBILE OPTIMIZATIONS ── */
+        @media (max-width: 768px) {
+            #hud-title {
+                font-size: 10px;
+                padding: 6px 16px;
+            }
+            #hud-hint {
+                display: none;
+            }
+            #hud-zoom {
+                right: calc(14px + env(safe-area-inset-right, 0px));
+                bottom: calc(70px + env(safe-area-inset-bottom, 0px));
+                padding: 8px 10px;
+                gap: 8px;
+            }
+            .zoom-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 20px;
+            }
+            #tmp { padding: 14px; }
+            .mediaclosebutton {
+                width: 44px;
+                height: 44px;
+                font-size: 20px;
+                top: calc(10px + env(safe-area-inset-top, 0px));
+                right: calc(10px + env(safe-area-inset-right, 0px));
+            }
+            .loading-logo { font-size: 22px; }
+            .progress-bar-track { width: 70vw; max-width: 220px; }
+            #crosshair { width: 14px; height: 14px; }
+        }
+
+        @media (max-width: 600px) {
+            #hud-hint { display: none; }
+            #hud-title { font-size: 11px; padding: 7px 16px; }
+        }
+
+        /* Landscape mobile tweaks */
+        @media (max-width: 900px) and (orientation: landscape) {
+            #hud-title { top: calc(10px + env(safe-area-inset-top, 0px)); }
+            #hud-zoom  { bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
+        }
     </style>
 </head>
 <body id="body">
+
+    <!-- Canvas -->
     <div id="container"></div>
-    <div id="overlay">Loading...</div>
-    
-    <div id="mode-indicator"><i class="fa fa-picture-o"></i> Panorama Mode</div>
-    <!-- Elemen controls-info dan compass telah dihapus dari sini -->
-    
-    <!--customhtml--><!--customhtml-end-->
-    
+
+    <!-- Vignette -->
+    <div id="vignette"></div>
+
+    <!-- Subtle crosshair -->
+    <div id="crosshair"></div>
+
+    <!-- HUD Title -->
+    <div id="hud-title">
+        <span class="dot"></span>Atria Institute of Technology
+    </div>
+
+    <!-- Controls hint -->
+    <div id="hud-hint">
+        <i class="fa fa-mouse-pointer"></i> Drag to look around &nbsp;·&nbsp;
+        <i class="fa fa-search-plus"></i> Scroll to zoom &nbsp;·&nbsp;
+        <i class="fa fa-hand-pointer-o"></i> Click markers to navigate
+    </div>
+
+    <!-- Zoom buttons -->
+    <div id="hud-zoom">
+        <div class="zoom-btn" onclick="zoomIn()" title="Zoom In">+</div>
+        <div class="zoom-btn" onclick="zoomOut()" title="Zoom Out">−</div>
+    </div>
+
+    <!-- Transition overlay -->
+    <div id="overlay">
+        <div class="loader-ring"></div>
+        <div class="loader-text" id="overlayText">Loading…</div>
+    </div>
+
+    <!-- Media lightbox -->
     <div id="tmp">
-        <div style="width: 100%; height: 100%; overflow: hidden; overflow-y: auto; box-sizing: border-box; position: relative;" id="tmpcontent"></div>
-        <div class="mediaclosebutton" onclick="hideTemp()"><i class="fa fa-times-circle"></i></div>
+        <div id="tmpcontent"></div>
+        <div class="mediaclosebutton" onclick="hideTemp()"><i class="fa fa-times"></i></div>
     </div>
 
-    <div id="loading" class="fullwrapper" style="display: table; width: 100%; height: 100%;">
-        <div style="display: table-cell; vertical-align: middle; text-align: center; color: white; font-size: 30px; padding: 50px;">
-            <!--loadingtext-->Loading...<!--loadingtext-end-->
-            <div id="loadingperc" style="font-size:12px;"></div>
+    <!-- Initial loading screen -->
+    <div id="loading">
+        <div class="loading-logo">ATRIA<span>.</span>TOUR</div>
+        <div class="loading-sub">Virtual Campus Experience</div>
+        <div class="progress-bar-track">
+            <div class="progress-bar-fill" id="progressFill"></div>
         </div>
+        <div id="loadingperc">Initialising…</div>
     </div>
-    
-    <!-- Three.js Core -->
+
+    <!--customhtml--><!--customhtml-end-->
+
+    <!-- Three.js -->
     <script src="js/three.min.js"></script>
-    <!-- OrbitControls -->
     <script src="js/OrbitControls.js"></script>
-    
+
     <script>
-        // ============ GLOBAL VARIABLES ============
-        let scene, camera, renderer, controls;
-        let spriteHotspots = [];
-        let panoramaMesh = null;
-        let mode = "panorama"; // 'panorama' or '3d'
-        let threeDSceneObjects = [];
-        let threeDScenes = {};
-        let current3DSceneId = null;
+    // ── GLOBALS ──────────────────────────────────────────────────────────────
+    let scene, camera, renderer, controls;
+    let spriteHotspots   = [];
+    let panoramaMesh     = null;
+    let mode             = "panorama";
+    let threeDSceneObjects = [];
+    let threeDScenes     = {};
+    let current3DSceneId = null;
 
-        // Environment variables
-        let skyboxMesh = null;
-        let ambientLight, hemisphereLight, directionalLight, fillLight;
-        // Variabel gridHelper dan axesHelper dihapus karena tidak lagi digunakan
+    let skyboxMesh      = null;
+    let ambientLight, hemisphereLight, directionalLight, fillLight;
 
-        // Zoom variables
-        let targetFov = 75;
-        let initialFov = 75;
-        let initialPinchDistance = null;
+    let targetFov          = 75;
+    let initialFov         = 75;
+    let initialPinchDistance = null;
 
-        // DOM elements
-        const overlay = document.getElementById('overlay');
-        const modeIndicator = document.getElementById('mode-indicator');
-        // Referensi ke controls-info dan compass dihapus
-        
-        // Raycasting
-        const raycaster = new THREE.Raycaster();
-        const mouse = new THREE.Vector2();
-        
-        // Keyboard movement for 3D mode
-        const keys = {};
-        const direction = new THREE.Vector3();
-        const upVector = new THREE.Vector3(0, 1, 0);
-        
-        // Clock for delta time
-        const clock = new THREE.Clock();
+    // Smooth pan inertia
+    let isTransitioning = false;
 
-        // ============ INITIALIZATION ============
-        init();
-        animate();
+    // Mobile detection (used for performance tuning)
+    const isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
 
-        /*initfunction*/
+    const overlay    = document.getElementById('overlay');
+    const overlayTxt = document.getElementById('overlayText');
+    const raycaster  = new THREE.Raycaster();
+    const mouse      = new THREE.Vector2();
+    const keys       = {};
+    const direction  = new THREE.Vector3();
+    const upVector   = new THREE.Vector3(0, 1, 0);
+    const clock      = new THREE.Clock();
 
-		let currentPanorama = '1010.jpeg';
-		function init() {
-			const container = document.getElementById('container');
+    // ── INIT ──────────────────────────────────────────────────────────────────
+    /*initfunction*/
 
-			scene = new THREE.Scene();
+    let currentPanorama = '1010.jpeg';
 
-			camera = new THREE.PerspectiveCamera(targetFov, container.clientWidth / container.clientHeight, 0.1, 1000);
-			// Set initial view direction towards the first hotspot
-			const startDir = new THREE.Vector3(-394.8529551343744, -55.577581089871046, 16.534694904487296).normalize();
-			camera.position.copy(startDir.multiplyScalar(-0.1));
+    function init() {
+        const container = document.getElementById('container');
+        scene  = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(targetFov, container.clientWidth / container.clientHeight, 0.1, 1000);
 
-			renderer = new THREE.WebGLRenderer({ antialias: true });
-			renderer.setSize(container.clientWidth, container.clientHeight);
-			container.appendChild(renderer.domElement);
+        const startDir = new THREE.Vector3(-394.8529551343744, -55.577581089871046, 16.534694904487296).normalize();
+        camera.position.copy(startDir.multiplyScalar(-0.1));
 
-			controls = new THREE.OrbitControls(camera, renderer.domElement);
-			controls.enableZoom = true;
-			controls.minDistance = 0.1;
-			controls.maxDistance = 5;
-			controls.enablePan = false;
-			controls.rotateSpeed = -0.3;
-			controls.enableDamping = true;
-			controls.dampingFactor = 0.1;
+        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        // Cap pixel ratio lower on mobile for smoother performance
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2));
+        renderer.outputEncoding = THREE.sRGBEncoding;
+        container.appendChild(renderer.domElement);
 
-			const geometry = new THREE.SphereGeometry(500, 60, 40);
-			geometry.scale(-1, 1, 1);
+        controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableZoom    = false;   // handled manually for smooth feel
+        controls.minDistance   = 0.1;
+        controls.maxDistance   = 5;
+        controls.enablePan     = false;
+        controls.rotateSpeed   = -0.28;
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.07;   // smoother damping
 
-			const texture = new THREE.TextureLoader().load('panoramas/1010.jpeg');
-			const material = new THREE.MeshBasicMaterial({ map: texture });
+        // Map touch gestures: one-finger rotate, two-finger pinch handled separately for FOV
+        controls.touches.ONE = THREE.TOUCH.ROTATE;
+        controls.touches.TWO = THREE.TOUCH.DOLLY_PAN;
 
-			panoramaMesh = new THREE.Mesh(geometry, material);
-			scene.add(panoramaMesh);
+        // Build sphere (lower poly count on mobile for performance)
+        const geometry = new THREE.SphereGeometry(500, isMobile ? 40 : 64, isMobile ? 30 : 48);
+        geometry.scale(-1, 1, 1);
+        const texture  = new THREE.TextureLoader().load('panoramas/1010.jpeg', () => {
+            hideInitialLoader();
+        });
+        texture.encoding = THREE.sRGBEncoding;
+        const material = new THREE.MeshBasicMaterial({ map: texture });
+        panoramaMesh   = new THREE.Mesh(geometry, material);
+        scene.add(panoramaMesh);
 
-			loadHotspotsFor('1010.jpeg');
+        loadHotspotsFor('1010.jpeg');
 
-			window.addEventListener('resize', onWindowResize);
-			renderer.domElement.addEventListener('wheel', onMouseWheel, { passive: false });
-			renderer.domElement.addEventListener('touchstart', handleTouchStart, { passive: false });
-			renderer.domElement.addEventListener('touchmove', handleTouchMove, { passive: false });
-			renderer.domElement.addEventListener('pointermove', onPointerMove, false);
-		}
-		
+        window.addEventListener('resize', onWindowResize);
+        window.addEventListener('orientationchange', () => setTimeout(onWindowResize, 200));
+        renderer.domElement.addEventListener('wheel',        onMouseWheel,   { passive: false });
+        renderer.domElement.addEventListener('touchstart',   handleTouchStart, { passive: false });
+        renderer.domElement.addEventListener('touchmove',    handleTouchMove,  { passive: false });
+        renderer.domElement.addEventListener('pointermove',  onPointerMove,    false);
 
-/*initfunction-end*/
+        // Keyboard
+        window.addEventListener('keydown', e => { keys[e.code] = true; });
+        window.addEventListener('keyup',   e => { keys[e.code] = false; });
+    }
 
-        // ============ CORE FUNCTIONS ============
-        
-        function animate() {
-            requestAnimationFrame(animate);
-            
-            const delta = clock.getDelta();
-            
-            if (mode === "3d") {
-                // Update mode indicator
-                modeIndicator.innerHTML = '<i class="fa fa-cube"></i> 3D Mode';
-                
-                // Keyboard movement for 3D scenes
-                const speed = 5 * delta;
-                
-                direction.set(0, 0, 0);
-                
-                if (keys["KeyW"]) direction.z -= 1;
-                if (keys["KeyS"]) direction.z += 1;
-                if (keys["KeyA"]) direction.x -= 1;
-                if (keys["KeyD"]) direction.x += 1;
-                if (keys["KeyQ"]) direction.y -= 1; // Down
-                if (keys["KeyE"]) direction.y += 1; // Up
-                
-                if (direction.length() > 0) {
-                    direction.normalize();
-                    
-                    // Transform direction from camera space to world space
-                    const cameraDirection = new THREE.Vector3();
-                    camera.getWorldDirection(cameraDirection);
-                    
-                    const right = new THREE.Vector3().crossVectors(upVector, cameraDirection).normalize();
-                    const up = new THREE.Vector3().crossVectors(cameraDirection, right).normalize();
-                    
-                    const moveVector = new THREE.Vector3()
-                        .addScaledVector(right, -direction.x * speed)
-                        .addScaledVector(up, direction.y * speed)
-                        .addScaledVector(cameraDirection, -direction.z * speed);
-                    
-                    camera.position.add(moveVector);
-                    controls.target.copy(camera.position).add(cameraDirection);
-                }
-                
-                // Update compass - Fungsi ini tidak lagi melakukan apapun karena elemen compass dihilangkan
-                // updateCompass();
-                
-                controls.update();
-            } else {
-                // Panorama mode animation
-                modeIndicator.innerHTML = '<i class="fa fa-picture-o"></i> Panorama Mode';
-                
-                camera.fov += (targetFov - camera.fov) * 0.1;
-                camera.updateProjectionMatrix();
-                
-                // Animate hotspots
-                const elapsedTime = clock.getElapsedTime();
-                spriteHotspots.forEach((sprite, index) => {
-                    if (sprite.userData.type === 'static') return;
-                    
-                    const currentScale = sprite.scale.x;
-                    const target = sprite.userData.targetScale || 80;
-                    
-                    // Pulse breathing effect
-                    const pulse = Math.sin(elapsedTime * 4 + index) * 6;
-                    const finalTarget = target + pulse;
+    /*initfunction-end*/
 
-                    const newScale = THREE.MathUtils.lerp(currentScale, finalTarget, 0.1);
-                    sprite.scale.set(newScale, newScale, 1);
-                    
-                    // Hopping effect
-                    if (sprite.userData.originalY !== undefined) {
-                        sprite.position.y = sprite.userData.originalY + Math.sin(elapsedTime * 5 + index) * 4;
-                    }
-                });
-                
-                controls.update();
+    function hideInitialLoader() {
+        const el = document.getElementById('loading');
+        el.style.transition = 'opacity 0.7s ease';
+        el.style.opacity    = '0';
+        setTimeout(() => { el.style.display = 'none'; }, 750);
+    }
+
+    // Expose zoom buttons
+    function zoomIn()  { targetFov = Math.max(30, targetFov - 8); }
+    function zoomOut() { targetFov = Math.min(100, targetFov + 8); }
+
+    // ── ANIMATE ───────────────────────────────────────────────────────────────
+    function animate() {
+        requestAnimationFrame(animate);
+        const delta = clock.getDelta();
+
+        if (mode === "3d") {
+            const speed = 5 * delta;
+            direction.set(0, 0, 0);
+            if (keys["KeyW"]) direction.z -= 1;
+            if (keys["KeyS"]) direction.z += 1;
+            if (keys["KeyA"]) direction.x -= 1;
+            if (keys["KeyD"]) direction.x += 1;
+            if (keys["KeyQ"]) direction.y -= 1;
+            if (keys["KeyE"]) direction.y += 1;
+
+            if (direction.length() > 0) {
+                direction.normalize();
+                const camDir   = new THREE.Vector3();
+                camera.getWorldDirection(camDir);
+                const right    = new THREE.Vector3().crossVectors(upVector, camDir).normalize();
+                const up       = new THREE.Vector3().crossVectors(camDir, right).normalize();
+                const moveVec  = new THREE.Vector3()
+                    .addScaledVector(right,  -direction.x * speed)
+                    .addScaledVector(up,      direction.y * speed)
+                    .addScaledVector(camDir, -direction.z * speed);
+                camera.position.add(moveVec);
+                controls.target.copy(camera.position).add(camDir);
             }
-            
-            renderer.render(scene, camera);
-        }
-
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
+        } else {
+            // Smooth FOV interpolation
+            camera.fov += (targetFov - camera.fov) * 0.12;
             camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
+
+            // Hotspot animations
+            const t = clock.getElapsedTime();
+            spriteHotspots.forEach((sprite, i) => {
+                if (sprite.userData.type === 'static') return;
+
+                const base   = sprite.userData.targetScale || 80;
+                const pulse  = Math.sin(t * 3.5 + i * 1.2) * 5;
+                const target = base + pulse;
+                const cur    = sprite.scale.x;
+                sprite.scale.setScalar(cur + (target - cur) * 0.10);
+
+                if (sprite.userData.originalY !== undefined) {
+                    sprite.position.y = sprite.userData.originalY + Math.sin(t * 4.5 + i * 1.1) * 3.5;
+                }
+
+                // Fade label when hovered
+                if (sprite.userData.labelSprite) {
+                    const label = sprite.userData.labelSprite;
+                    const targetOpacity = sprite.userData.hovered ? 1 : 0.72;
+                    label.material.opacity = label.material.opacity + (targetOpacity - label.material.opacity) * 0.15;
+                }
+            });
         }
 
-        // Fungsi updateCompass dikosongkan karena elemennya sudah dihilangkan
-        function updateCompass() {
-            // Kompas tidak lagi digunakan
-        }
+        controls.update();
+        renderer.render(scene, camera);
+    }
 
-        // ============ LIGHTING SETUP ============
-        
-        function createLights() {
-            // Ambient light
-            ambientLight = new THREE.AmbientLight(0x404060);
-            ambientLight.name = "ambientLight";
-            scene.add(ambientLight);
-            
-            // Hemisphere light
-            hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1);
-            hemisphereLight.name = "hemisphereLight";
-            scene.add(hemisphereLight);
-            
-            // Directional light (main light)
-            directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-            directionalLight.position.set(5, 10, 7);
-            directionalLight.castShadow = true;
-            directionalLight.receiveShadow = true;
-            directionalLight.shadow.mapSize.width = 1024;
-            directionalLight.shadow.mapSize.height = 1024;
-            const d = 15;
-            directionalLight.shadow.camera.left = -d;
-            directionalLight.shadow.camera.right = d;
-            directionalLight.shadow.camera.top = d;
-            directionalLight.shadow.camera.bottom = -d;
-            directionalLight.shadow.camera.near = 1;
-            directionalLight.shadow.camera.far = 25;
-            directionalLight.name = "directionalLight";
-            scene.add(directionalLight);
-            
-            // Fill light
-            fillLight = new THREE.PointLight(0x4466ff, 0.3);
-            fillLight.position.set(-5, 3, 5);
-            fillLight.name = "fillLight";
-            scene.add(fillLight);
-        }
+    function onWindowResize() {
+        const container = document.getElementById('container');
+        camera.aspect = container.clientWidth / container.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(container.clientWidth, container.clientHeight);
+    }
 
-        function configureLights(envSettings) {
-            if (!envSettings) return;
-            
-            if (ambientLight) ambientLight.visible = envSettings.lights?.ambient !== false;
-            if (hemisphereLight) hemisphereLight.visible = envSettings.lights?.hemisphere !== false;
-            if (directionalLight) directionalLight.visible = envSettings.lights?.directional !== false;
-            
-            // Grid dan AxesHelper tidak lagi ditambahkan
+    // ── ZOOM ─────────────────────────────────────────────────────────────────
+    function onMouseWheel(e) {
+        e.preventDefault();
+        targetFov += e.deltaY * 0.04;
+        targetFov  = THREE.MathUtils.clamp(targetFov, 30, 100);
+    }
+    function handleTouchStart(e) {
+        if (e.touches.length === 2) {
+            const dx = e.touches[0].pageX - e.touches[1].pageX;
+            const dy = e.touches[0].pageY - e.touches[1].pageY;
+            initialPinchDistance = Math.sqrt(dx*dx + dy*dy);
+            initialFov = targetFov;
         }
-
-        // ============ ZOOM HANDLERS ============
-        
-        function onMouseWheel(e) {
+    }
+    function handleTouchMove(e) {
+        if (e.touches.length === 2 && initialPinchDistance !== null) {
             e.preventDefault();
-            targetFov += e.deltaY * 0.05;
-            targetFov = THREE.MathUtils.clamp(targetFov, 30, 100);
+            const dx = e.touches[0].pageX - e.touches[1].pageX;
+            const dy = e.touches[0].pageY - e.touches[1].pageY;
+            const nd = Math.sqrt(dx*dx + dy*dy);
+            targetFov = THREE.MathUtils.clamp(initialFov * (initialPinchDistance / nd), 30, 100);
+        }
+    }
+
+    // ── HOTSPOTS ─────────────────────────────────────────────────────────────
+    function loadHotspotsFor(panorama) {
+        clearHotspots();
+        /*panoramas*/
+
+        if (panorama === '1010.jpeg') {
+            addHotspot('images/chevrontilted.png',
+                new THREE.Vector3(-394.8529551343744, -55.577581089871046, 16.534694904487296),
+                () => { switchPanorama('8888.jpeg'); },
+                { offsetY: -50, offsetZ: 5, offsetX: -100 }
+            );
         }
 
-        function handleTouchStart(e) {
-            if (e.touches.length === 2) {
-                const dx = e.touches[0].pageX - e.touches[1].pageX;
-                const dy = e.touches[0].pageY - e.touches[1].pageY;
-                initialPinchDistance = Math.sqrt(dx * dx + dy * dy);
-                initialFov = targetFov;
-            }
+        if (panorama === '8888.jpeg') {
+            addHotspot('images/chevrontilted.png',
+                new THREE.Vector3(-394.9243449226463, -60.842689387380275, -5.327103682829396),
+                () => { switchPanorama('3333.jpeg'); },
+                { offsetY: -50, offsetZ: 0, offsetX: -100 }
+            );
         }
 
-        function handleTouchMove(e) {
-            if (e.touches.length === 2 && initialPinchDistance !== null) {
-                e.preventDefault();
-                const dx = e.touches[0].pageX - e.touches[1].pageX;
-                const dy = e.touches[0].pageY - e.touches[1].pageY;
-                const newDistance = Math.sqrt(dx * dx + dy * dy);
-                const zoomFactor = initialPinchDistance / newDistance;
-                targetFov = THREE.MathUtils.clamp(initialFov * zoomFactor, 30, 100);
-            }
+        if (panorama === '3333.jpeg') {
+            addHotspot('images/chevronforward.png',
+                new THREE.Vector3(-395.0942804175204, -53.52303591471901, -16.384208930147345),
+                () => { switchPanorama('11111111.jpeg'); },
+                { offsetY: -70, offsetZ: 0, offsetX: -100 }
+            );
         }
 
-        // ============ HOTSPOT FUNCTIONS ============
-        
-        function loadHotspotsFor(panorama) {
-            clearHotspots();
-            /*panoramas*/
-
-			if (panorama === '1010.jpeg') {
-				addHotspot('images/chevrontilted.png', new THREE.Vector3(-394.8529551343744, -55.577581089871046, 16.534694904487296), () => {
-		switchPanorama('8888.jpeg');
-	});
-}
-
-			if (panorama === '8888.jpeg') {
-				addHotspot('images/chevrontilted.png', new THREE.Vector3(-394.9243449226463, -60.842689387380275, -5.327103682829396), () => {
-		switchPanorama('3333.jpeg');
-	});
-}
-
-			if (panorama === '3333.jpeg') {
-				addHotspot('images/chevronforward.png', new THREE.Vector3(-395.0942804175204, -53.52303591471901, -16.384208930147345), () => {
-		switchPanorama('11111111.jpeg');
-	});
-}
-
-			if (panorama === '11111111.jpeg') {
-				addHotspot('images/chevronforward.png', new THREE.Vector3(-399.40802486991106, -2.682630372219153, -7.313108501343212), () => {
-		switchPanorama('7777.jpeg');
-	});
-	addHotspot('images/chevronforward.png', new THREE.Vector3(41.61999947092701, -14.040876008992948, -397.189179322591), () => {
-		switchPanorama('1010.jpeg');
-	});
-}
-
-			if (panorama === '7777.jpeg') {
-				addHotspot('images/chevrontilted.png', new THREE.Vector3(-350.0, -83.49155199765971, -170.0), () => {
-		switchPanorama('9999.jpeg');
-	});
-	addStaticImage('images/WhatsAppImage20260612at14.36.34.jpeg', new THREE.Vector3(-395.9321496941983, -40.75690339898365, -29.531094674849257), 85, 120, () => {});
-}
-
-			if (panorama === '9999.jpeg') {
-				addHotspot('images/chevronleft.png', new THREE.Vector3(-397.9532809914798, 1.7864170917204292, -36.18197948138619), () => {
-		switchPanorama('5555.jpeg');
-	});
-}
-
-			if (panorama === '5555.jpeg') {
-				addHotspot('images/chevronleft.png', new THREE.Vector3(-219.01296887436808, -181.9495553350952, -280.2192961943286), () => {
-		switchPanorama('6666.jpeg');
-	});
-	addHotspot('images/chevrontilted.png', new THREE.Vector3(-353.2569536760154, -185.7585950120302, -12.556163197944937), () => {
-		switchPanorama('7777.jpeg');
-	});
-}
-
-			if (panorama === '6666.jpeg') {
-				addHotspot('images/chevronforward.png', new THREE.Vector3(-373.7292852732634, -141.3508544529347, 1.0520145945771726), () => {
-		switchPanorama('4444.jpeg');
-	});
-	addHotspot('images/chevrontilted.png', new THREE.Vector3(307.74948001260657, -237.94908840314645, 90.95930543703543), () => {
-		switchPanorama('5555.jpeg');
-	});
-}
-
-			if (panorama === '4444.jpeg') {
-				addHotspot('images/â__Pngtreeâ__gpsmappointertoindicate_7948539.png', new THREE.Vector3(-392.1974831900987, -72.569764219895, 13.388010757278055), () => {
-	});
-	addHotspot('images/chevronleft.png', new THREE.Vector3(310.45574586421895, -227.03155999541852, -107.63929662623653), () => {
-		switchPanorama('6666.jpeg');
-	});
-}
-
-
-/*panoramas-end*/
+        if (panorama === '11111111.jpeg') {
+            addHotspot('images/chevronforward.png',
+                new THREE.Vector3(-399.40802486991106, -2.682630372219153, -7.313108501343212),
+                () => { switchPanorama('7777.jpeg'); },
+                { offsetY: -50, offsetZ: -2, offsetX: -100 }
+            );
+            addHotspot('images/chevronforward.png',
+                new THREE.Vector3(41.61999947092701, -14.040876008992948, -397.189179322591),
+                () => { switchPanorama('1010.jpeg'); }
+            );
         }
 
-        function switchPanorama(panoramaName) {
-            // Kembalikan panorama sphere jika sedang di 3D mode
-            if (mode === "3d") {
-                switchToPanoramaMode();
-            }
-            
-            overlay.style.pointerEvents = 'auto';
-            overlay.style.opacity = '1';
-            overlay.textContent = 'Loading...';
+        if (panorama === '7777.jpeg') {
+            addHotspot('images/chevrontilted.png',
+                new THREE.Vector3(-350.0, -83.49155199765971, -170.0),
+                () => { switchPanorama('9999.jpeg'); }
+            );
+            addStaticImage(
+                'images/WhatsAppImage20260612at14.36.34.jpeg',
+                new THREE.Vector3(-395.9321496941983, -40.75690339898365, -29.531094674849257),
+                85, 120, () => {}
+            );
+        }
 
-            const newTexture = new THREE.TextureLoader().load(`panoramas/${panoramaName}`, (tex) => {
+        if (panorama === '9999.jpeg') {
+            addHotspot('images/chevronleft.png',
+                new THREE.Vector3(-397.9532809914798, 1.7864170917204292, -36.18197948138619),
+                () => { switchPanorama('5555.jpeg'); }
+            );
+        }
+
+        if (panorama === '5555.jpeg') {
+            addHotspot('images/chevronleft.png',
+                new THREE.Vector3(-219.01296887436808, -181.9495553350952, -280.2192961943286),
+                () => { switchPanorama('6666.jpeg'); }
+            );
+            addHotspot('images/chevrontilted.png',
+                new THREE.Vector3(-353.2569536760154, -185.7585950120302, -12.556163197944937),
+                () => { switchPanorama('11111111.jpeg'); }
+            );
+        }
+
+        if (panorama === '6666.jpeg') {
+            addHotspot('images/chevronforward.png',
+                new THREE.Vector3(-373.7292852732634, -141.3508544529347, 1.0520145945771726),
+                () => { switchPanorama('4444.jpeg'); }
+            );
+            addHotspot('images/chevrontilted.png',
+                new THREE.Vector3(307.74948001260657, -237.94908840314645, 90.95930543703543),
+                () => { switchPanorama('5555.jpeg'); }
+            );
+        }
+
+        // ── 4444: Admission Department — FIXED (no more stray globals) ──
+        if (panorama === '4444.jpeg') {
+            addHotspot(
+                'images/â__Pngtreeâ__gpsmappointertoindicate_7948539.png',
+                new THREE.Vector3(-392.1974831900987, -72.569764219895, 13.388010757278055),
+                () => {},
+                { text: 'Atria IT Admission Department' }
+            );
+            addHotspot(
+                'images/chevronleft.png',
+                new THREE.Vector3(310.45574586421895, -227.03155999541852, -107.63929662623653),
+                () => { switchPanorama('6666.jpeg'); }
+            );
+        }
+
+        /*panoramas-end*/
+    }
+
+    // ── PANORAMA SWITCH with smooth fade ─────────────────────────────────────
+    function switchPanorama(panoramaName) {
+        if (isTransitioning) return;
+        isTransitioning = true;
+
+        if (mode === "3d") switchToPanoramaMode();
+
+        // Fade out
+        overlay.classList.add('visible');
+        overlayTxt.textContent = 'Loading…';
+
+        const newTexture = new THREE.TextureLoader().load(
+            `panoramas/${panoramaName}`,
+            (tex) => {
+                tex.encoding = THREE.sRGBEncoding;
                 panoramaMesh.material.map = tex;
                 panoramaMesh.material.needsUpdate = true;
                 currentPanorama = panoramaName;
-                
-                // Adjust initial face direction for specific panoramas
-                if (panoramaName === '5555.jpeg') {
-                    const startDir = new THREE.Vector3(-353.2569536760154, -185.7585950120302, -12.556163197944937).normalize();
-                    // Rotate 70 degrees to the right
-                    startDir.applyAxisAngle(new THREE.Vector3(0, 1, 0), THREE.MathUtils.degToRad(-70));
-                    camera.position.copy(startDir.multiplyScalar(-0.1));
-                    controls.target.set(0, 0, 0);
-                    controls.update();
-                }
 
-                if (panoramaName === '6666.jpeg') {
-                    const startDir = new THREE.Vector3(-373.7292852732634, -141.3508544529347, 1.0520145945771726).normalize();
-                    // Open a bit to the left and slightly upward
-                    startDir.applyAxisAngle(new THREE.Vector3(0, 1, 0), THREE.MathUtils.degToRad(10));
-                    startDir.applyAxisAngle(new THREE.Vector3(1, 0, 0), THREE.MathUtils.degToRad(10));
-                    camera.position.copy(startDir.multiplyScalar(-0.1));
-                    controls.target.set(0, 0, 0);
+                // Per-panorama initial look direction
+                const lookDirs = {
+                    '5555.jpeg': { dir: new THREE.Vector3(-353.2569536760154, -185.7585950120302, -12.556163197944937), rotY:  -70 },
+                    '6666.jpeg': { dir: new THREE.Vector3(-373.7292852732634, -141.3508544529347,  1.0520145945771726), rotY:   10, rotX: 10 }
+                };
+                if (lookDirs[panoramaName]) {
+                    const ld = lookDirs[panoramaName];
+                    const sd = ld.dir.clone().normalize();
+                    if (ld.rotY) sd.applyAxisAngle(new THREE.Vector3(0,1,0), THREE.MathUtils.degToRad(ld.rotY));
+                    if (ld.rotX) sd.applyAxisAngle(new THREE.Vector3(1,0,0), THREE.MathUtils.degToRad(ld.rotX));
+                    camera.position.copy(sd.multiplyScalar(-0.1));
+                    controls.target.set(0,0,0);
                     controls.update();
                 }
 
                 loadHotspotsFor(currentPanorama);
-                overlay.style.opacity = '0';
-                overlay.style.pointerEvents = 'none';
-            }, (xhr) => {
-                const progress = (xhr.loaded / xhr.total) * 100;
-                overlay.textContent = `Loading... ${progress.toFixed(0)}%`;
-            });
+
+                // Fade in
+                setTimeout(() => {
+                    overlay.classList.remove('visible');
+                    isTransitioning = false;
+                }, 80);
+            },
+            (xhr) => {
+                const p = (xhr.loaded / xhr.total * 100).toFixed(0);
+                overlayTxt.textContent = `Loading… ${p}%`;
+                document.getElementById('progressFill').style.width = p + '%';
+            }
+        );
+    }
+
+    // ── LABEL SPRITE ──────────────────────────────────────────────────────────
+    function createLabelSprite(text) {
+        // Use a wider canvas so long labels like "Atria IT Admission Department" aren't clipped
+        const canvas  = document.createElement('canvas');
+        canvas.width  = 1536;
+        canvas.height = 280;
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const fontSize = 72;
+        ctx.font = `bold ${fontSize}px "Quicksand", Arial, sans-serif`;
+        ctx.textAlign    = 'center';
+        ctx.textBaseline = 'middle';
+
+        const tw  = ctx.measureText(text).width;
+        // Box always at least as wide as text + generous padding; never overflows canvas
+        const bw  = Math.min(tw + 140, canvas.width - 40);
+        const bx  = (canvas.width - bw) / 2;
+        const by  = 36;
+        const bh  = 196;
+        const r   = 36;
+
+        // Outer glow
+        ctx.shadowColor = 'rgba(0, 200, 100, 0.35)';
+        ctx.shadowBlur  = 28;
+
+        // Rounded rect — near-black fill
+        ctx.beginPath();
+        ctx.moveTo(bx+r, by);
+        ctx.lineTo(bx+bw-r, by);
+        ctx.quadraticCurveTo(bx+bw, by, bx+bw, by+r);
+        ctx.lineTo(bx+bw, by+bh-r);
+        ctx.quadraticCurveTo(bx+bw, by+bh, bx+bw-r, by+bh);
+        ctx.lineTo(bx+r, by+bh);
+        ctx.quadraticCurveTo(bx, by+bh, bx, by+bh-r);
+        ctx.lineTo(bx, by+r);
+        ctx.quadraticCurveTo(bx, by, bx+r, by);
+        ctx.closePath();
+
+        ctx.fillStyle   = 'rgba(2, 4, 6, 0.94)';          // very dark, near-black
+        ctx.strokeStyle = 'rgba(0, 210, 100, 0.75)';
+        ctx.lineWidth   = 6;
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.shadowBlur    = 0;
+        ctx.fillStyle     = '#ffffff';
+        ctx.fillText(text, canvas.width / 2, canvas.height / 2 + 8);
+
+        const tex = new THREE.CanvasTexture(canvas);
+        tex.needsUpdate = true;
+        const mat = new THREE.SpriteMaterial({
+            map: tex, transparent: true,
+            depthTest: false, depthWrite: false, opacity: 0.95
+        });
+        const sprite = new THREE.Sprite(mat);
+        // Scale X wider to match the wider canvas ratio (1536/280 ≈ 5.49) — gives it room
+        sprite.scale.set(240, 44, 1);
+        sprite.renderOrder = 999;
+        return sprite;
+    }
+
+    // ── ADD HOTSPOT ──────────────────────────────────────────────────────────
+    function addHotspot(imageUrl, position, onClickCallback, labelOptions = {}) {
+        const offsetY  = labelOptions.offsetY ?? 70;
+        const offsetX  = labelOptions.offsetX ?? 0;
+        const offsetZ  = labelOptions.offsetZ ?? 10;
+        const labelTxt = labelOptions.text    || 'Click here !';
+
+        const mat    = new THREE.SpriteMaterial({ transparent: true, depthTest: false });
+        const sprite = new THREE.Sprite(mat);
+        sprite.position.copy(position);
+        // Larger tap target on mobile for easier touch navigation
+        sprite.scale.setScalar(isMobile ? 150 : 110);
+        sprite.renderOrder = 10;
+        sprite.userData = {
+            onClick:       onClickCallback,
+            targetScale:   isMobile ? 115 : 80,
+            type:          'hotspot',
+            originalY:     position.y,
+            hovered:       false
+        };
+        spriteHotspots.push(sprite);
+        scene.add(sprite);
+
+        // Label
+        const labelSprite = createLabelSprite(labelTxt);
+        labelSprite.position.set(
+            position.x + offsetX,
+            position.y + offsetY,
+            position.z + offsetZ
+        );
+        labelSprite.userData = { type: 'hotspot-label' };
+        sprite.userData.labelSprite = labelSprite;
+        scene.add(labelSprite);
+
+        new THREE.TextureLoader().load(imageUrl, (tex) => {
+            sprite.material.map = tex;
+            sprite.material.needsUpdate = true;
+        });
+    }
+
+    function addStaticImage(imageUrl, position, scaleX, scaleY, onClickCallback) {
+        const mat    = new THREE.SpriteMaterial({ transparent: true, depthTest: false });
+        const sprite = new THREE.Sprite(mat);
+        sprite.position.copy(position);
+        sprite.scale.set(scaleX, scaleY, 1);
+        sprite.renderOrder = 10;
+        sprite.userData = { onClick: onClickCallback, type: 'static' };
+        spriteHotspots.push(sprite);
+        scene.add(sprite);
+        new THREE.TextureLoader().load(imageUrl, (tex) => {
+            sprite.material.map = tex;
+            sprite.material.needsUpdate = true;
+        });
+    }
+
+    function clearHotspots() {
+        spriteHotspots.forEach(s => {
+            if (s.userData?.labelSprite) scene.remove(s.userData.labelSprite);
+            scene.remove(s);
+        });
+        spriteHotspots = [];
+    }
+
+    // ── POINTER / HOVER ──────────────────────────────────────────────────────
+    function onPointerMove(event) {
+        if (mode !== "panorama") return;
+        mouse.x =  (event.clientX / window.innerWidth)  * 2 - 1;
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+        raycaster.setFromCamera(mouse, camera);
+        const hits = raycaster.intersectObjects(spriteHotspots);
+
+        spriteHotspots.forEach(s => {
+            s.userData.targetScale = isMobile ? 115 : 80;
+            s.userData.hovered     = false;
+        });
+        if (hits.length > 0) {
+            hits[0].object.userData.targetScale = isMobile ? 140 : 105;
+            hits[0].object.userData.hovered     = true;
+            document.getElementById('container').style.cursor = 'pointer';
+        } else {
+            document.getElementById('container').style.cursor = 'grab';
         }
+    }
 
-        function addHotspot(imageUrl, position, onClickCallback) {
-            const material = new THREE.SpriteMaterial();
-            const sprite = new THREE.Sprite(material);
-            sprite.position.copy(position);
-            // Increased scale for slightly bigger target 
-            sprite.scale.set(110, 110, 1);
-            sprite.userData = {
-                onClick: onClickCallback,
-                targetScale: 110,
-                type: 'hotspot',
-                originalY: position.y
-            };
-            spriteHotspots.push(sprite);
-            scene.add(sprite);
+    // ── CLICK ────────────────────────────────────────────────────────────────
+    function handleClick(event) {
+        const cx = event.clientX || (event.changedTouches?.[0]?.clientX);
+        const cy = event.clientY || (event.changedTouches?.[0]?.clientY);
+        if (!cx || !cy) return;
 
-            const textureLoader = new THREE.TextureLoader();
-            textureLoader.load(imageUrl, (texture) => {
-                sprite.material.map = texture;
-                sprite.material.needsUpdate = true;
-            });
-        }
+        const mv = new THREE.Vector2(
+            ( cx / window.innerWidth)  * 2 - 1,
+            -(cy / window.innerHeight) * 2 + 1
+        );
+        const cr = new THREE.Raycaster();
+        cr.setFromCamera(mv, camera);
 
-        function addStaticImage(imageUrl, position, scaleX, scaleY, onClickCallback) {
-            const material = new THREE.SpriteMaterial();
-            const sprite = new THREE.Sprite(material);
-            sprite.position.copy(position);
-            sprite.scale.set(scaleX, scaleY, 1);
-            sprite.userData = {
-                onClick: onClickCallback,
-                type: 'static'
-            };
-            spriteHotspots.push(sprite);
-            scene.add(sprite);
-
-            const textureLoader = new THREE.TextureLoader();
-            textureLoader.load(imageUrl, (texture) => {
-                sprite.material.map = texture;
-                sprite.material.needsUpdate = true;
-            });
-        }
-
-        function clearHotspots() {
-            spriteHotspots.forEach(sprite => scene.remove(sprite));
-            spriteHotspots = [];
-        }
-
-        function onPointerMove(event) {
-            if (mode !== "panorama") return;
-            
-            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
-            raycaster.setFromCamera(mouse, camera);
-            const intersects = raycaster.intersectObjects(spriteHotspots);
-
-            spriteHotspots.forEach(sprite => {
-                sprite.userData.targetScale = 80;
-            });
-
-            if (intersects.length > 0) {
-                intersects[0].object.userData.targetScale = 100;
+        if (mode === "panorama") {
+            const hits = cr.intersectObjects(spriteHotspots);
+            if (hits.length > 0) {
+                event.preventDefault();
+                hits[0].object.userData.onClick?.();
+            }
+        } else {
+            const hits = cr.intersectObjects(threeDSceneObjects);
+            if (hits.length > 0) {
+                event.preventDefault();
+                const obj = hits[0].object;
+                if (obj.userData?.actions?.length) executeActions(obj.userData.actions);
             }
         }
+    }
+    document.addEventListener('click',    handleClick);
+    document.addEventListener('touchend', handleClick);
 
-        // ============ CLICK HANDLER ============
-        
-        function handleClick(event) {
-            const clientX = event.clientX || (event.changedTouches && event.changedTouches[0].clientX);
-            const clientY = event.clientY || (event.changedTouches && event.changedTouches[0].clientY);
-
-            if (!clientX || !clientY) return;
-
-            const mouseClick = new THREE.Vector2(
-                (clientX / window.innerWidth) * 2 - 1,
-                -(clientY / window.innerHeight) * 2 + 1
-            );
-
-            const clickRaycaster = new THREE.Raycaster();
-            clickRaycaster.setFromCamera(mouseClick, camera);
-            
-            if (mode === "panorama") {
-                // Handle hotspot clicks
-                const intersects = clickRaycaster.intersectObjects(spriteHotspots);
-                if (intersects.length > 0) {
-                    event.preventDefault();
-                    const clicked = intersects[0].object;
-                    if (clicked.userData.onClick) clicked.userData.onClick();
-                }
-            } else {
-                // Handle 3D object clicks
-                const intersects = clickRaycaster.intersectObjects(threeDSceneObjects);
-                if (intersects.length > 0) {
-                    event.preventDefault();
-                    const clickedObject = intersects[0].object;
-                    
-                    // Execute actions from userData
-                    if (clickedObject.userData && clickedObject.userData.actions && clickedObject.userData.actions.length > 0) {
-                        executeActions(clickedObject.userData.actions);
+    // ── ACTIONS ──────────────────────────────────────────────────────────────
+    function executeActions(actions) {
+        actions.forEach(action => {
+            switch (action.type) {
+                case 0: if (action.target) switchPanorama(action.target); break;
+                case 1: if (action.target) showMedia(1, action.target); break;
+                case 2: if (action.target) showMedia(2, action.target); break;
+                case 3: if (action.target) showMedia(3, action.target); break;
+                case 4: if (action.target) showMedia(4, action.target); break;
+                case 5:
+                    if (action.target) {
+                        const id = action.target.startsWith('3dscene:')
+                            ? action.target.replace('3dscene:', '')
+                            : action.target;
+                        switchTo3DScene(id);
                     }
-                }
-            }
-        }
-
-        // Add click listeners
-        document.addEventListener('click', handleClick);
-        document.addEventListener('touchend', handleClick);
-
-        // ============ ACTION EXECUTION ============
-        
-        function executeActions(actions) {
-            console.log("Executing actions:", actions);
-            
-            actions.forEach(action => {
-                switch(action.type) {
-                    case 0: // Open Panorama
-                        if (action.target) switchPanorama(action.target);
-                        break;
-                        
-                    case 1: // Show Image
-                        if (action.target) showMedia(1, action.target);
-                        break;
-                        
-                    case 2: // Play Video
-                        if (action.target) showMedia(2, action.target);
-                        break;
-                        
-                    case 3: // Play Audio
-                        if (action.target) showMedia(3, action.target);
-                        break;
-                        
-                    case 4: // Open PDF
-                        if (action.target) showMedia(4, action.target);
-                        break;
-                        
-                    case 5: // Open 3D Scene
-                        if (action.target) {
-                            const sceneId = action.target.startsWith('3dscene:') 
-                                ? action.target.replace('3dscene:', '') 
-                                : action.target;
-                            switchTo3DScene(sceneId);
-                        }
-                        break;
-                        
-                    case 6: // Open URL
-                        if (action.target) window.open(action.target, '_blank');
-                        break;
-                        
-                    case 7: // Execute JavaScript
-                        if (action.target) {
-                            try {
-                                eval(action.target);
-                            } catch(e) {
-                                console.error("Error executing JavaScript action:", e);
-                            }
-                        }
-                        break;
-                        
-                    default:
-                        console.log("Unknown action type:", action.type);
-                }
-            });
-        }
-
-        // ============ MEDIA DISPLAY ============
-        
-        function hideTemp() {
-            $("#tmp").fadeOut();
-            setTimeout(() => $("#tmpcontent").html(""), 1000);
-        }
-        
-        function showMedia(type, content) {
-            switch(type) {
-                case 1:
-                    $("#tmpcontent").html("<img src='"+content+"' style='max-width: 100%; max-height: 100%; object-fit: contain; display: block; margin: auto; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);'>");
                     break;
-                case 2:
-                    $("#tmpcontent").html("<video controls autoplay style='width: 100%; height: 100%;'><source src='" +content+ "' type='video/mp4'> Your browser does not support the video tag.</video>");
-                    break;
-                case 3:
-                    $("#tmpcontent").html("<audio controls style='width: 100%;'><source src='"+content+"' type='audio/mpeg'>Your browser does not support the audio tag.</audio>");
-                    break;
-                case 4:
-                    $("#tmpcontent").html("<iframe src='pdfjs/web/viewer.html?file=../../"+content+"' style='width: 100%; height: 99%;'></iframe>");
-                    break;
-            }
-            $("#tmp").fadeIn();
-        }
-		
-		
-		// Tambahkan di akhir script, sebelum customjs
-		function toggleLights() {
-			// Debug function untuk cek lighting
-			console.log("Toggling lights for debugging");
-			
-			// Tambah directional light kedua dari arah berbeda
-			const extraLight = new THREE.DirectionalLight(0xffffff, 0.8);
-			extraLight.position.set(-5, 5, 5);
-			scene.add(extraLight);
-			
-			// Tambah point light di dekat cube
-			const pointLight = new THREE.PointLight(0xffaa00, 1, 10);
-			pointLight.position.set(2, 2, 2);
-			scene.add(pointLight);
-			
-			setTimeout(() => {
-				scene.remove(extraLight);
-				scene.remove(pointLight);
-			}, 5000);
-		}
-
-		// Debug shortcut (Ctrl+L) untuk toggle extra lights
-		document.addEventListener('keydown', function(e) {
-			if (e.ctrlKey && e.key === 'l') {
-				e.preventDefault();
-				toggleLights();
-			}
-		});
-
-        // ============ 3D SCENE FUNCTIONS ============
-        
-        function addObjectToScene(objData) {
-			let geometry, material, mesh;
-			
-			// Handle material type (color or texture)
-			const materialType = objData.materialType || 'color';
-			
-			try {
-				if (materialType === 'texture' && objData.texture) {
-					// Load texture
-					const textureLoader = new THREE.TextureLoader();
-					const texturePath = 'images/' + objData.texture;
-					
-					const texture = textureLoader.load(texturePath);
-					
-					// Check if PNG for transparency
-					const isPNG = objData.texture.toLowerCase().endsWith('.png');
-					
-					material = new THREE.MeshStandardMaterial({ 
-						map: texture,
-						transparent: isPNG,
-						emissive: 0x222222,
-						emissiveIntensity: 0.2
-					});
-					
-					console.log("Texture loaded:", texturePath);
-				} else {
-					// Solid color
-					material = new THREE.MeshStandardMaterial({ 
-						color: objData.color || 0xffffff,
-						emissive: 0x222222,
-						emissiveIntensity: 0.1
-					});
-				}
-				
-				// Khusus plane perlu DoubleSide
-				if (objData.type === 'plane') {
-					material.side = THREE.DoubleSide;
-				}
-			} catch(e) {
-				console.error("Error creating material:", e);
-				material = new THREE.MeshStandardMaterial({ color: 0xff00ff });
-			}
-			
-			switch(objData.type) {
-				case 'cube':
-					geometry = new THREE.BoxGeometry(
-						objData.width || 1, 
-						objData.height || 1, 
-						objData.depth || 1
-					);
-					mesh = new THREE.Mesh(geometry, material);
-					break;
-					
-				case 'sphere':
-					geometry = new THREE.SphereGeometry(
-						objData.radius || 0.7, 
-						32, 32
-					);
-					mesh = new THREE.Mesh(geometry, material);
-					break;
-					
-				case 'plane':
-					geometry = new THREE.PlaneGeometry(
-						objData.width || 50, 
-						objData.height || 50
-					);
-					mesh = new THREE.Mesh(geometry, material);
-					break;
-					
-				default:
-					return null;
-			}
-			
-			if (mesh) {
-				mesh.position.set(
-					objData.posX || 0, 
-					objData.posY || 0, 
-					objData.posZ || 0
-				);
-				
-				mesh.rotation.set(
-					(objData.rotX || 0) * Math.PI / 180,
-					(objData.rotY || 0) * Math.PI / 180,
-					(objData.rotZ || 0) * Math.PI / 180
-				);
-				
-				mesh.scale.set(
-					objData.scaleX || 1, 
-					objData.scaleY || 1, 
-					objData.scaleZ || 1
-				);
-				
-				mesh.castShadow = true;
-				mesh.receiveShadow = true;
-				
-				// Store actions and metadata in userData
-				mesh.userData = {
-					actions: objData.actions || [],
-					type: objData.type,
-					name: objData.name || objData.type,
-					id: objData.id || 'obj_' + Date.now(),
-					originalData: objData
-				};
-				
-				return mesh;
-			}
-			
-			return null;
-		}
-
-        function clear3DScene() {
-			// Hapus semua 3D objects
-			threeDSceneObjects.forEach(obj => scene.remove(obj));
-			threeDSceneObjects = [];
-			
-			// Hapus grid dan axes (tidak lagi diperlukan, tapi dibiarkan untuk jaga-jaga jika ada kode lama)
-			// Variabel gridHelper dan axesHelper tidak lagi digunakan
-		}
-
-        function switchToPanoramaMode() {
-			mode = "panorama";
-			current3DSceneId = null;
-			
-			// Hapus skybox 3D
-			if (skyboxMesh) {
-				scene.remove(skyboxMesh);
-				skyboxMesh = null;
-			}
-			
-			// Reset background
-			scene.background = null;
-			
-			// Show panorama sphere
-			if (!scene.children.includes(panoramaMesh)) {
-				scene.add(panoramaMesh);
-			}
-			
-			// Remove 3D objects
-			clear3DScene();
-			
-			// Reset controls for panorama
-			controls.enablePan = false;
-			controls.minDistance = 0.1;
-			controls.maxDistance = 5;
-			controls.target.set(0, 0, 0);
-			
-			// Show hotspots
-			loadHotspotsFor(currentPanorama);
-			
-			// Update UI
-			// controlsInfo.style.display = 'none'; // Elemen sudah dihilangkan
-			
-			// Reset camera
-			camera.position.set(0, 0, 0.1);
-		}
-        
-        function switchTo3DScene(sceneId) {
-			console.log("Switching to 3D scene:", sceneId);
-			
-			const sceneData = threeDScenes[sceneId];
-			
-			if (!sceneData) {
-				console.error("3D Scene not found:", sceneId);
-				return;
-			}
-			
-			mode = "3d";
-			current3DSceneId = sceneId;
-			
-			// Hapus panorama sphere dari scene
-			if (panoramaMesh && scene.children.includes(panoramaMesh)) {
-				scene.remove(panoramaMesh);
-			}
-			
-			// Hapus semua hotspot
-			clearHotspots();
-			
-			// Hapus semua 3D objects yang ada
-			clear3DScene();
-			
-			// Hapus skybox mesh jika ada (kita tidak akan pakai mesh lagi)
-			if (skyboxMesh) {
-				scene.remove(skyboxMesh);
-				skyboxMesh = null;
-			}
-			
-			// Reset background ke null dulu
-			scene.background = null;
-			
-			// Reset lights
-			const lightsToRemove = [];
-			scene.children.forEach(obj => {
-				if (obj.isLight) lightsToRemove.push(obj);
-			});
-			lightsToRemove.forEach(light => scene.remove(light));
-			
-			// Buat ulang lights
-			ambientLight = new THREE.AmbientLight(0x404060);
-			scene.add(ambientLight);
-			
-			hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1);
-			scene.add(hemisphereLight);
-			
-			directionalLight = new THREE.DirectionalLight(0xffffff, 1.2);
-			directionalLight.position.set(5, 10, 7);
-			directionalLight.castShadow = true;
-			directionalLight.receiveShadow = true;
-			scene.add(directionalLight);
-			
-			const backLight = new THREE.PointLight(0x4466ff, 0.5);
-			backLight.position.set(-5, 3, -5);
-			scene.add(backLight);
-			
-			// Set environment settings
-			if (sceneData.environment) {
-				// Menggunakan Scene.background dengan CubeTexture atau Texture
-				if (sceneData.environment.skyboxType === 'panorama' && sceneData.environment.skyboxPanorama) {
-					const panoramaPath = 'panoramas/' + sceneData.environment.skyboxPanorama;
-					
-					// Load texture dan set sebagai background
-					const textureLoader = new THREE.TextureLoader();
-					textureLoader.load(panoramaPath, (texture) => {
-						// Untuk panorama equirectangular, kita perlu set mapping
-						texture.mapping = THREE.EquirectangularRefractionMapping;
-						
-						// Set sebagai scene background
-						scene.background = texture;
-						
-						// Set environment map untuk refleksi (optional)
-						scene.environment = texture;
-						
-						console.log("✅ Skybox set as scene background:", panoramaPath);
-					});
-					
-				} else if (sceneData.environment.skyboxType === 'color' && sceneData.environment.skyboxColor) {
-					scene.background = new THREE.Color(sceneData.environment.skyboxColor);
-				} else {
-					scene.background = new THREE.Color(0x111122);
-				}
-				
-				// Grid dan AxesHelper tidak lagi ditambahkan di sini
-				
-			} else {
-				scene.background = new THREE.Color(0x111122);
-			}
-			
-			// Set camera position
-			if (sceneData.cameraPos) {
-				camera.position.set(
-					sceneData.cameraPos.x, 
-					sceneData.cameraPos.y, 
-					sceneData.cameraPos.z
-				);
-				controls.target.set(0, 1, 0);
-			} else {
-				camera.position.set(5, 3, 8);
-				controls.target.set(0, 1, 0);
-			}
-			
-			// Set controls untuk 3D mode
-			controls.enablePan = true;
-			controls.maxDistance = 200;
-			controls.minDistance = 1;
-			
-			// Add objects from scene data
-			if (sceneData.objects && sceneData.objects.length > 0) {
-				sceneData.objects.forEach(objData => {
-					const mesh = addObjectToScene(objData);
-					if (mesh) {
-						scene.add(mesh);
-						threeDSceneObjects.push(mesh);
-					}
-				});
-			}
-			
-			// Update UI
-			// controlsInfo.style.display = 'block'; // Elemen sudah dihilangkan
-			overlay.style.opacity = '0';
-			overlay.style.pointerEvents = 'none';
-			
-			console.log("3D scene ready");
-		}
-
-
-		
-		// Fungsi debug untuk cek skybox
-		function debugSkybox() {
-			console.log("=== SKYBOX DEBUG INFO ===");
-			console.log("Skybox exists:", !!skyboxMesh);
-			if (skyboxMesh) {
-				console.log("Skybox position:", skyboxMesh.position);
-				console.log("Skybox scale:", skyboxMesh.scale);
-				console.log("Material side:", skyboxMesh.material.side);
-				console.log("Material depthWrite:", skyboxMesh.material.depthWrite);
-				console.log("Render order:", skyboxMesh.renderOrder);
-				console.log("Frustum culled:", skyboxMesh.frustumCulled);
-				console.log("Material map:", skyboxMesh.material.map ? "✅ Texture loaded" : "❌ No texture");
-			}
-			console.log("Camera position:", camera.position);
-			console.log("Mode:", mode);
-			console.log("Current 3D Scene ID:", current3DSceneId);
-		}
-
-		// Panggil setelah switchTo3DScene
-		setTimeout(debugSkybox, 2000);
-
-
-        // ============ DEBUG FUNCTIONS ============
-        
-        function inspect3DObjects() {
-            console.log("=== 3D Objects Debug Info ===");
-            console.log("Mode:", mode);
-            console.log("Current 3D Scene ID:", current3DSceneId);
-            console.log("3D Objects in scene:", threeDSceneObjects.length);
-            
-            if (current3DSceneId && threeDScenes[current3DSceneId]) {
-                console.log("Scene name:", threeDScenes[current3DSceneId].name);
-                console.log("Scene objects in data:", threeDScenes[current3DSceneId].objects?.length || 0);
-            }
-            
-            threeDSceneObjects.forEach((obj, index) => {
-                console.log(`Object ${index}:`, {
-                    name: obj.userData.name,
-                    type: obj.userData.type,
-                    position: obj.position,
-                    rotation: obj.rotation,
-                    scale: obj.scale,
-                    actions: obj.userData.actions || [],
-                    material: obj.material ? (obj.material.color ? '#' + obj.material.color.getHexString() : 'texture') : 'unknown'
-                });
-            });
-            
-            console.log("All 3D Scenes data:", threeDScenes);
-        }
-
-        // Debug shortcut (Ctrl+I)
-        document.addEventListener('keydown', function(e) {
-            if (e.ctrlKey && e.key === 'i') {
-                e.preventDefault();
-                inspect3DObjects();
+                case 6: if (action.target) window.open(action.target, '_blank'); break;
+                case 7: if (action.target) { try { eval(action.target); } catch(e) { console.error(e); } } break;
             }
         });
+    }
 
-        // ============ CUSTOM JS AREA ============
-        /*customjs*/
+    // ── MEDIA ─────────────────────────────────────────────────────────────────
+    function hideTemp() {
+        $("#tmp").fadeOut(300);
+        setTimeout(() => $("#tmpcontent").html(""), 350);
+    }
+    function showMedia(type, content) {
+        const map = {
+            1: `<img src='${content}' style='max-width:100%;max-height:100%;object-fit:contain;display:block;margin:auto;border-radius:10px;box-shadow:0 8px 40px rgba(0,0,0,0.6)'>`,
+            2: `<video controls autoplay style='width:100%;height:100%;border-radius:10px'><source src='${content}' type='video/mp4'></video>`,
+            3: `<audio controls style='width:100%;margin-top:40%'><source src='${content}' type='audio/mpeg'></audio>`,
+            4: `<iframe src='pdfjs/web/viewer.html?file=../../${content}' style='width:100%;height:99%;border:none;border-radius:10px'></iframe>`
+        };
+        if (map[type]) {
+            $("#tmpcontent").html(map[type]);
+            $("#tmp").fadeIn(300);
+        }
+    }
 
+    // ── LIGHTING ─────────────────────────────────────────────────────────────
+    function createLights() {
+        ambientLight = new THREE.AmbientLight(0x404060); ambientLight.name = "ambientLight"; scene.add(ambientLight);
+        hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1); hemisphereLight.name = "hemisphereLight"; scene.add(hemisphereLight);
+        directionalLight = new THREE.DirectionalLight(0xffffff, 1); directionalLight.position.set(5,10,7); directionalLight.castShadow = true; directionalLight.name = "directionalLight"; scene.add(directionalLight);
+        fillLight = new THREE.PointLight(0x4466ff, 0.3); fillLight.position.set(-5,3,5); fillLight.name = "fillLight"; scene.add(fillLight);
+    }
 
-/*customjs-end*/
+    // ── 3D SCENE ──────────────────────────────────────────────────────────────
+    function addObjectToScene(objData) {
+        let geometry, material, mesh;
+        const matType = objData.materialType || 'color';
+        try {
+            if (matType === 'texture' && objData.texture) {
+                const tex = new THREE.TextureLoader().load('images/' + objData.texture);
+                material = new THREE.MeshStandardMaterial({ map: tex, transparent: objData.texture.toLowerCase().endsWith('.png'), emissive: 0x222222, emissiveIntensity: 0.2 });
+            } else {
+                material = new THREE.MeshStandardMaterial({ color: objData.color || 0xffffff, emissive: 0x222222, emissiveIntensity: 0.1 });
+            }
+            if (objData.type === 'plane') material.side = THREE.DoubleSide;
+        } catch(e) { material = new THREE.MeshStandardMaterial({ color: 0xff00ff }); }
 
-        // ============ 3D SCENES DATA ============
-        /*threedeescenes-data*/
-// 3D Scenes Data
-threeDScenes = {};
+        switch (objData.type) {
+            case 'cube':   geometry = new THREE.BoxGeometry(objData.width||1, objData.height||1, objData.depth||1); break;
+            case 'sphere': geometry = new THREE.SphereGeometry(objData.radius||0.7, 32, 32); break;
+            case 'plane':  geometry = new THREE.PlaneGeometry(objData.width||50, objData.height||50); break;
+            default: return null;
+        }
+        mesh = new THREE.Mesh(geometry, material);
+        mesh.position.set(objData.posX||0, objData.posY||0, objData.posZ||0);
+        mesh.rotation.set((objData.rotX||0)*Math.PI/180, (objData.rotY||0)*Math.PI/180, (objData.rotZ||0)*Math.PI/180);
+        mesh.scale.set(objData.scaleX||1, objData.scaleY||1, objData.scaleZ||1);
+        mesh.castShadow = mesh.receiveShadow = true;
+        mesh.userData = { actions: objData.actions||[], type: objData.type, name: objData.name||objData.type, id: objData.id||'obj_'+Date.now(), originalData: objData };
+        return mesh;
+    }
 
-/*threedeescenes-data-end*/
-        
-        // ============ INITIAL MODE ============
-        mode = "panorama";
+    function clear3DScene() {
+        threeDSceneObjects.forEach(o => scene.remove(o));
+        threeDSceneObjects = [];
+    }
+
+    function switchToPanoramaMode() {
+        mode = "panorama"; current3DSceneId = null;
+        if (skyboxMesh) { scene.remove(skyboxMesh); skyboxMesh = null; }
+        scene.background = null;
+        if (!scene.children.includes(panoramaMesh)) scene.add(panoramaMesh);
+        clear3DScene();
+        controls.enablePan = false; controls.minDistance = 0.1; controls.maxDistance = 5; controls.target.set(0,0,0);
+        loadHotspotsFor(currentPanorama);
+        camera.position.set(0,0,0.1);
+    }
+
+    function switchTo3DScene(sceneId) {
+        const sceneData = threeDScenes[sceneId];
+        if (!sceneData) { console.error("3D Scene not found:", sceneId); return; }
+        mode = "3d"; current3DSceneId = sceneId;
+        if (panoramaMesh && scene.children.includes(panoramaMesh)) scene.remove(panoramaMesh);
+        clearHotspots(); clear3DScene();
+        if (skyboxMesh) { scene.remove(skyboxMesh); skyboxMesh = null; }
+        scene.background = null;
+        scene.children.filter(o=>o.isLight).forEach(l=>scene.remove(l));
+        ambientLight = new THREE.AmbientLight(0x404060); scene.add(ambientLight);
+        hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1); scene.add(hemisphereLight);
+        directionalLight = new THREE.DirectionalLight(0xffffff, 1.2); directionalLight.position.set(5,10,7); directionalLight.castShadow = true; scene.add(directionalLight);
+        scene.add(Object.assign(new THREE.PointLight(0x4466ff, 0.5), {position: new THREE.Vector3(-5,3,-5)}));
+        if (sceneData.environment) {
+            if (sceneData.environment.skyboxType === 'panorama' && sceneData.environment.skyboxPanorama) {
+                new THREE.TextureLoader().load('panoramas/' + sceneData.environment.skyboxPanorama, (t) => {
+                    t.mapping = THREE.EquirectangularRefractionMapping;
+                    scene.background = scene.environment = t;
+                });
+            } else if (sceneData.environment.skyboxType === 'color') {
+                scene.background = new THREE.Color(sceneData.environment.skyboxColor);
+            } else { scene.background = new THREE.Color(0x111122); }
+        } else { scene.background = new THREE.Color(0x111122); }
+        if (sceneData.cameraPos) { camera.position.set(sceneData.cameraPos.x, sceneData.cameraPos.y, sceneData.cameraPos.z); controls.target.set(0,1,0); }
+        else { camera.position.set(5,3,8); controls.target.set(0,1,0); }
+        controls.enablePan = true; controls.maxDistance = 200; controls.minDistance = 1;
+        (sceneData.objects||[]).forEach(od => { const m = addObjectToScene(od); if (m) { scene.add(m); threeDSceneObjects.push(m); } });
+        overlay.classList.remove('visible');
+    }
+
+    // ── 3D SCENES DATA ────────────────────────────────────────────────────────
+    /*threedeescenes-data*/
+    threeDScenes = {};
+    /*threedeescenes-data-end*/
+
+    // ── CUSTOM JS ────────────────────────────────────────────────────────────
+    /*customjs*/
+    /*customjs-end*/
+
+    // ── START ─────────────────────────────────────────────────────────────────
+    mode = "panorama";
+    init();
+    animate();
     </script>
 </body>
 </html>
