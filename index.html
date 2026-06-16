@@ -677,13 +677,13 @@
     function switchPanorama(panoramaName) {
         if (isTransitioning) return;
         isTransitioning = true;
-
+ 
         if (mode === "3d") switchToPanoramaMode();
-
+ 
         // Fade out
         overlay.classList.add('visible');
         overlayTxt.textContent = 'Loading…';
-
+ 
         const newTexture = new THREE.TextureLoader().load(
             `panoramas/${panoramaName}`,
             (tex) => {
@@ -691,11 +691,13 @@
                 panoramaMesh.material.map = tex;
                 panoramaMesh.material.needsUpdate = true;
                 currentPanorama = panoramaName;
-
+ 
                 // Per-panorama initial look direction
                 const lookDirs = {
-                    '5555.jpeg': { dir: new THREE.Vector3(-353.2569536760154, -185.7585950120302, -12.556163197944937), rotY:  -70 },
-                    '6666.jpeg': { dir: new THREE.Vector3(-373.7292852732634, -141.3508544529347,  1.0520145945771726), rotY:   10, rotX: 10 }
+                    '5555.jpeg':  { dir: new THREE.Vector3(-353.2569536760154, -185.7585950120302, -12.556163197944937), rotY: -70 },
+                    '6666.jpeg':  { dir: new THREE.Vector3(-373.7292852732634, -141.3508544529347,   1.0520145945771726), rotY:  10, rotX: 10 },
+                    '7777.jpeg':  { dir: new THREE.Vector3(90.0, -83.49155199765971, -370.0) },
+                    '9999.jpeg':  { dir: new THREE.Vector3(800.9532809914798, 1.7864170917204292, -36.18197948138619) }
                 };
                 if (lookDirs[panoramaName]) {
                     const ld = lookDirs[panoramaName];
@@ -706,9 +708,9 @@
                     controls.target.set(0,0,0);
                     controls.update();
                 }
-
+ 
                 loadHotspotsFor(currentPanorama);
-
+ 
                 // Fade in
                 setTimeout(() => {
                     overlay.classList.remove('visible');
