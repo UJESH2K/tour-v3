@@ -657,57 +657,16 @@
 
         if (panorama === '7777.jpeg') {
             addHotspot('images/chevrontilted.png',
-                new THREE.Vector3(-350.0, -83.49155199765971, -170.0),
+                new THREE.Vector3(+90.0, -83.49155199765971, -370.0),
                 () => { switchPanorama('9999.jpeg'); }
             );
-            addStaticImage(
-                'images/WhatsAppImage20260612at14.36.34.jpeg',
-                new THREE.Vector3(-395.9321496941983, -40.75690339898365, -29.531094674849257),
-                85, 120, () => {}
-            );
+            
         }
 
         if (panorama === '9999.jpeg') {
-            addHotspot('images/chevronleft.png',
-                new THREE.Vector3(-397.9532809914798, 1.7864170917204292, -36.18197948138619),
-                () => { switchPanorama('5555.jpeg'); }
-            );
-        }
-
-        if (panorama === '5555.jpeg') {
-            addHotspot('images/chevronleft.png',
-                new THREE.Vector3(-219.01296887436808, -181.9495553350952, -280.2192961943286),
-                () => { switchPanorama('6666.jpeg'); }
-            );
-            addHotspot('images/chevrontilted.png',
-                new THREE.Vector3(-353.2569536760154, -185.7585950120302, -12.556163197944937),
-                () => { switchPanorama('11111111.jpeg'); }
-            );
-        }
-
-        if (panorama === '6666.jpeg') {
-            addHotspot('images/chevronforward.png',
-                new THREE.Vector3(-373.7292852732634, -141.3508544529347, 1.0520145945771726),
-                () => { switchPanorama('4444.jpeg'); }
-            );
-            addHotspot('images/chevrontilted.png',
-                new THREE.Vector3(307.74948001260657, -237.94908840314645, 90.95930543703543),
-                () => { switchPanorama('5555.jpeg'); }
-            );
-        }
-
-        // ── 4444: Admission Department — FIXED (no more stray globals) ──
-        if (panorama === '4444.jpeg') {
-            addHotspot(
-                'images/â__Pngtreeâ__gpsmappointertoindicate_7948539.png',
-                new THREE.Vector3(-392.1974831900987, -72.569764219895, 13.388010757278055),
-                () => {},
-                { text: 'Atria IT Admission Department' }
-            );
-            addHotspot(
-                'images/chevronleft.png',
-                new THREE.Vector3(310.45574586421895, -227.03155999541852, -107.63929662623653),
-                () => { switchPanorama('6666.jpeg'); }
+            addHotspot('images/chevronright.png',
+                new THREE.Vector3(800.9532809914798, 1.7864170917204292, -36.18197948138619),
+                () => { switchPanorama('7777.jpeg'); }
             );
         }
 
